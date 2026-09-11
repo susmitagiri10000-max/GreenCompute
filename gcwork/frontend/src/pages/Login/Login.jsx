@@ -10,8 +10,10 @@ import {
   ShieldCheck,
   AlertCircle,
 } from "lucide-react";
-
 import useAuth from "../../hooks/useAuth";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -85,45 +87,77 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/auth/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({
-            email: formData.email.trim(),
-            password: formData.password,
-          }),
-        }
-      );
+      /*
+       * IMPORTANT:
+       * Do NOT hard-code 127.0.0.1:8000 here.
+       *
+       * Local:
+       * http://localhost:8000
+       *
+       * Production:
+       * https://greencompute-backend.onrender.com
+       */
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email.trim(),
+          password: formData.password,
+        }),
+      });
 
-      const data = await response.json();
+      let data = {};
+
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
 
       if (!response.ok) {
         setErrors({
           general:
-            data?.detail || "Invalid email or password.",
+            data?.detail ||
+            data?.message ||
+            "Invalid email or password.",
         });
         return;
       }
 
       /*
-       * Your current FastAPI get_current_user()
-       * expects this exact demo token.
+       * Backend may return:
+       *
+       * {
+       *   "access_token": "...",
+       *   "token_type": "bearer"
+       * }
+       *
+       * If your current backend still uses the demo token,
+       * keep the fallback below.
        */
-      const DEMO_TOKEN = "greencompute_demo_token";
+      const token =
+        data?.access_token || "greencompute_demo_token";
 
       const userInfo = {
-        id: "demo-user",
-        name: formData.email.split("@")[0],
-        email: formData.email.trim(),
-        role: "Administrator",
+        id: data?.user?.id || data?.id || "demo-user",
+        name:
+          data?.user?.name ||
+          data?.name ||
+          formData.email.split("@")[0],
+        email:
+          data?.user?.email ||
+          data?.email ||
+          formData.email.trim(),
+        role:
+          data?.user?.role ||
+          data?.role ||
+          "Administrator",
       };
 
-      const loginSuccess = login(DEMO_TOKEN, userInfo);
+      const loginSuccess = login(token, userInfo);
 
       if (!loginSuccess) {
         setErrors({
@@ -156,7 +190,6 @@ const Login = () => {
         {/* LEFT SIDE */}
         <div className="relative hidden overflow-hidden bg-emerald-600 lg:flex">
           <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
-
           <div className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-teal-300/20 blur-3xl" />
 
           <div className="relative flex w-full flex-col justify-between p-12 xl:p-16">
@@ -356,9 +389,7 @@ const Login = () => {
                   <button
                     type="button"
                     onClick={() =>
-                      setShowPassword(
-                        (previous) => !previous
-                      )
+                      setShowPassword((previous) => !previous)
                     }
                     disabled={isLoading}
                     aria-label={
@@ -442,7 +473,6 @@ const Login = () => {
                 Never share your password or access token with anyone.
               </p>
             </div>
-
           </div>
         </div>
       </div>
