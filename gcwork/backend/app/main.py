@@ -27,7 +27,7 @@ cors_origins = [
     item.strip()
     for item in os.getenv(
         "CORS_ORIGINS",
-        "http://localhost:5173,http://localhost:5174,http://localhost:5175",
+        "http://localhost:5173,http://localhost:5174,http://localhost:5175", "https://greencompute-frontend.onrender.com",
     ).split(",")
     if item.strip()
 ]
