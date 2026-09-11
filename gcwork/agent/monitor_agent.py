@@ -19,7 +19,7 @@ try:
 except ImportError:
     pass
 
-API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000").rstrip("/")
+API_BASE_URL = os.getenv("API_BASE_URL", "https://greencompute-backend.onrender.com").rstrip("/")
 API_TOKEN = os.getenv("API_TOKEN", "greencompute_demo_token")
 LAB_ID = int(os.getenv("LAB_ID", "1"))
 COMPUTER_NAME = os.getenv("COMPUTER_NAME", "")
